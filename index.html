@@ -216,6 +216,11 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .form input{font:500 16px var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
 .form input:focus{outline:2px solid var(--accent);outline-offset:0;border-color:var(--accent)}
 .form .full{grid-column:1/-1}
+.t3k{display:flex;flex-direction:column;gap:4px}
+.t3l{font-size:12.5px;color:var(--muted);font-weight:600}
+.t3r{display:flex;gap:10px}
+.t3r label{flex-direction:row!important;align-items:center;gap:6px!important;font-weight:500!important}
+.t3r input{width:84px!important;text-align:center}
 .form .hint{font-weight:400;font-size:11.5px}
 .lifts{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) 78px 64px;gap:6px 8px;align-items:center}
 .lifts .lh{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
@@ -389,7 +394,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
       <form class="form" id="form" novalidate>
         <label>Data<input type="date" id="f-data" required></label>
         <label>Peso (kg)<input type="number" id="f-peso" step="0.1" min="30" max="150" inputmode="decimal"></label>
-        <label>Test 3 km (tempo)<span class="hint">min:sec, es. 19:30</span><input type="text" id="f-t3k" placeholder="19:30" inputmode="numeric"></label>
+        <div class="full t3k"><span class="t3l">Tempo del test 3 km</span><div class="t3r"><label><input type="number" id="f-t3m" min="8" max="40" step="1" inputmode="numeric" placeholder="19" aria-label="Minuti"><span>min</span></label><label><input type="number" id="f-t3s" min="0" max="59" step="1" inputmode="numeric" placeholder="30" aria-label="Secondi"><span>sec</span></label></div></div>
         <label class="full">Nota<input type="text" id="f-nota" maxlength="140" placeholder="Es. test fatto in pista, giornata ventosa"></label>
         <div class="err" id="ferr" hidden></div>
         <div class="actions"><button class="btn" type="button" id="cancelform">Annulla</button><button class="btn solid" type="submit">Salva</button></div>
@@ -778,9 +783,9 @@ function renderDati(){
 function openForm(){
   document.getElementById("formcard").hidden = false;
   document.getElementById("f-data").value = todayIso;
-  ["f-peso","f-t3k","f-nota"].forEach(id=>document.getElementById(id).value="");
+  ["f-peso","f-t3m","f-t3s","f-nota"].forEach(id=>document.getElementById(id).value="");
   document.getElementById("f-peso").placeholder = P.peso ? String(P.peso).replace(".",",") : "";
-  document.getElementById("f-t3k").placeholder = mmss(P.t3k);
+  document.getElementById("f-t3m").placeholder = Math.floor(P.t3k/60); document.getElementById("f-t3s").placeholder = String(Math.round(P.t3k%60)).padStart(2,"0");
   document.getElementById("ferr").hidden = true;
   document.getElementById("formcard").scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -790,7 +795,7 @@ function submitForm(e){
   const errs = [];
   const m = {data:v("f-data")||todayIso, nota:v("f-nota"), creato:new Date().toISOString()};
   const ps = v("f-peso").replace(",","."); if(ps){ const n=+ps; if(isNaN(n)||n<30||n>150) errs.push("Il peso deve stare tra 30 e 150 kg"); else m.peso=n; }
-  if(v("f-t3k")){ const t=toSec(v("f-t3k")); if(!t||t<600||t>2400) errs.push("Scrivi il tempo dei 3 km come min:sec, per esempio 19:30"); else m.t3k=t; }
+  if(v("f-t3m")||v("f-t3s")){ const mi=+(v("f-t3m")||0), se=+(v("f-t3s")||0), t=mi*60+se; if(isNaN(t)||se<0||se>59||t<600||t>2400) errs.push("Controlla il tempo dei 3 km: minuti tra 10 e 40, secondi tra 0 e 59"); else m.t3k=t; }
   if(!errs.length && m.peso==null && m.t3k==null) errs.push("Scrivi il tempo del test o il peso");
   if(errs.length){ const el=document.getElementById("ferr"); el.textContent=errs.join(". ")+"."; el.hidden=false; return; }
   if(!m.nota) delete m.nota;

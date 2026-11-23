@@ -1,5 +1,5 @@
 /* Salva l'app sul telefono così si apre anche senza internet. Cambia VERSIONE quando aggiorni l'app. */
-const VERSIONE = "irene-v1";
+const VERSIONE = "irene-v2";
 const FILE = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-180.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(VERSIONE).then(c => c.addAll(FILE)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSIONE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
